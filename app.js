@@ -1,5 +1,12 @@
 /*
  * @Author: Miles
+ * @Date: 2024-06-26 15:22:43
+ * @LastEditors: Miles
+ * @LastEditTime: 2024-07-02 13:56:58
+ * @FilePath: \node-mongoDB\app.js
+ */
+/*
+ * @Author: Miles
  * @Date: 2024-06-25 14:40:43
  * @LastEditors: Miles
  * @LastEditTime: 2024-06-26 14:30:58
@@ -30,6 +37,8 @@ app.use(cors())
 // })
 
 app.use("/api", require("./routes"))
+
+app.use(require("./middleware/error"))
 app.listen(config.app.port, () => {
     console.log("OK 4000");
 })

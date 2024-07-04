@@ -2,7 +2,7 @@
  * @Author: Miles
  * @Date: 2024-06-26 15:22:43
  * @LastEditors: Miles
- * @LastEditTime: 2024-07-02 13:56:58
+ * @LastEditTime: 2024-07-03 20:44:17
  * @FilePath: \node-mongoDB\app.js
  */
 /*
@@ -26,6 +26,8 @@ const app = express()
 
 app.use(express.json())
 app.use(morgan())
+
+app.use(express.static("public"))
 
 app.use(cors())
 // app.get("/", (req, res) => {

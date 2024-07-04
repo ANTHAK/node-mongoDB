@@ -2,7 +2,7 @@
  * @Author: Miles
  * @Date: 2024-07-02 13:44:09
  * @LastEditors: Miles
- * @LastEditTime: 2024-07-03 00:28:30
+ * @LastEditTime: 2024-07-03 15:45:52
  * @FilePath: \node-mongoDB\controller\user.js
  */
 // 注册用户
@@ -111,7 +111,22 @@ exports.getUser = async (req, res, next) => {
 // 编辑/修改指定用户
 exports.updateUser = async (req, res, next) => {
     try {
-
+        let userId = req.params.id
+        console.log('userId: ', userId);
+        let body = req.body
+        const data = await User.findByIdAndUpdate(userId,body)
+        console.log('data: ', data);
+        if(!data) return  res.status(400).json({
+            code:400,
+            msg:"update userInfo Error"
+        }) 
+        return res.status(200).json({
+            code:200,
+            msg:"success",
+            data:{
+                user:{body}
+            }
+        })
     } catch (err) {
         next(err)
     }
@@ -120,7 +135,19 @@ exports.updateUser = async (req, res, next) => {
 // 删除指定用户
 exports.deleteUser = async (req, res, next) => {
     try {
-
+        let userId = req.params.id
+        const data = await User.findByIdAndUpdate(userId)
+        if(!data) return  res.status(400).json({
+            code:400,
+            msg:"delete userInfo Error"
+        }) 
+        return res.status(200).json({
+            code:200,
+            msg:"success",
+            data:{
+                user:{userId}
+            }
+        })
 
     } catch (err) {
         next(err);

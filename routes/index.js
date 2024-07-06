@@ -11,4 +11,5 @@ const router = require("express").Router()
 router.use("/user",require("./user"))
 router.use("/login",require("./auth"))
 router.use("/upload",require("./upload"))
+router.use("/topic",require("./topic"))
 module.exports = router

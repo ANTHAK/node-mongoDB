@@ -17,4 +17,5 @@ router.post("/", validator(userValidator), auth.login)
 
 // 登錄接口
 
-module.exports = router
+module.exports = router;
+

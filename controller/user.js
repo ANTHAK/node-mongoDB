@@ -2,7 +2,7 @@
  * @Author: Miles
  * @Date: 2024-07-02 13:44:09
  * @LastEditors: Miles
- * @LastEditTime: 2024-07-03 15:45:52
+ * @LastEditTime: 2024-07-06 13:49:41
  * @FilePath: \node-mongoDB\controller\user.js
  */
 // 注册用户
@@ -83,25 +83,27 @@ exports.getUserList = async (req, res, next) => {
 // 获取指定用户
 exports.getUser = async (req, res, next) => {
     try {
-    const userId = req.params.id
-    console.log('userId:0000 ', userId);
-    if(!userId || userId.length != 24) return res.status(400).json({
-        code:400,
-        msg:"userInfo Error"
-    })
-    let user = await User.findById(userId)
-    if(!user) return  res.status(400).json({
-        code:400,
-        msg:"userId Error2"
-    }) 
-    
-    return res.status(200).json({
-        code:200,
-        msg:"success",
-        data:{
-            user:{user}
-        }
-    })
+        const userId = req.params.id
+        console.log('userId:0000 ', userId);
+        if (!userId || userId.length != 24) return res.status(400).json({
+            code: 400,
+            msg: "userInfo Error"
+        })
+        let user = await User.findById(userId)
+        if (!user) return res.status(400).json({
+            code: 400,
+            msg: "userId Error2"
+        })
+
+        return res.status(200).json({
+            code: 200,
+            msg: "success",
+            data: {
+                user: {
+                    user
+                }
+            }
+        })
     } catch (err) {
         next(err)
     }
@@ -111,20 +113,28 @@ exports.getUser = async (req, res, next) => {
 // 编辑/修改指定用户
 exports.updateUser = async (req, res, next) => {
     try {
+        const {
+            fields = ''
+        } = req.query;
+        const selectFields = fields.split(';').filter(f => f).map(f => ' +' + f).join('');
         let userId = req.params.id
         console.log('userId: ', userId);
         let body = req.body
-        const data = await User.findByIdAndUpdate(userId,body)
+        const salt = await bcrypt.genSalt(10)
+        body.password = await bcrypt.hash(body.password, salt)
+        const data = await User.findByIdAndUpdate(userId, body).select(selectFields)
         console.log('data: ', data);
-        if(!data) return  res.status(400).json({
-            code:400,
-            msg:"update userInfo Error"
-        }) 
+        if (!data) return res.status(400).json({
+            code: 400,
+            msg: "update userInfo Error"
+        })
         return res.status(200).json({
-            code:200,
-            msg:"success",
-            data:{
-                user:{body}
+            code: 200,
+            msg: "success",
+            data: {
+                user: {
+                    body
+                }
             }
         })
     } catch (err) {
@@ -137,15 +147,17 @@ exports.deleteUser = async (req, res, next) => {
     try {
         let userId = req.params.id
         const data = await User.findByIdAndUpdate(userId)
-        if(!data) return  res.status(400).json({
-            code:400,
-            msg:"delete userInfo Error"
-        }) 
+        if (!data) return res.status(400).json({
+            code: 400,
+            msg: "delete userInfo Error"
+        })
         return res.status(200).json({
-            code:200,
-            msg:"success",
-            data:{
-                user:{userId}
+            code: 200,
+            msg: "success",
+            data: {
+                user: {
+                    userId
+                }
             }
         })
 
@@ -153,3 +165,112 @@ exports.deleteUser = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.listFollowing = async (req, res, next) => {
+    try {
+        let userId = req.params.id
+        const data = await User.findById(userId).select("+following").populate("following")
+        if (!data) return res.status(400).json({
+            code: 400,
+            msg: "followingList Error"
+        })
+        return res.status(200).json({
+            code: 200,
+            msg: "success",
+            data: {
+                user: {
+                    data
+                }
+            }
+        })
+        // res.send("關注列表")
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.addFollowing = async (req, res, next) => {
+    try {
+        let userId = req.params.id
+        const data = await User.findById(userId.toString()).select("+following")
+
+        if (!data) return res.status(400).json({
+            code: 400,
+            msg: "following Error"
+        })
+        if (data.following.map(id => id.toString()).includes(userId)) res.status(400).json({
+            code: 400,
+            msg: "following"
+        })
+        data.following.push(userId)
+        await data.save()
+        return res.status(200).json({
+            code: 200,
+            msg: "following success",
+            data: {
+                user: {
+                    data
+                }
+            }
+        })
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.unFollowing = async (req, res, next) => {
+    try {
+        let userId = req.params.id
+        const data = await User.findById(userId.toString()).select("+following")
+
+        if (!data) return res.status(400).json({
+            code: 400,
+            msg: "following Error"
+        })
+        const index = data.following.map(id => id.toString()).indexOf(userId)
+
+        if (index == -1) res.status(400).json({
+            code: 400,
+            msg: "unFollowing"
+        })
+        data.following.splice(index, 1)
+        return res.status(200).json({
+            code: 200,
+            msg: "unFollowing success",
+            data: {
+                user: {
+                    data
+                }
+            }
+        })
+
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.followList = async (req, res, next) => {
+    try {
+        let userId = req.params.id
+        const data = await User.find({following:userId})
+        if (!data) return res.status(400).json({
+            code: 400,
+            msg: "List Error"
+        })
+        return res.status(200).json({
+            code: 200,
+            msg: "success",
+            data: {
+                user: {
+                    data
+                }
+            }
+        })
+
+    } catch (err) {
+        next(err);
+    }
+}
